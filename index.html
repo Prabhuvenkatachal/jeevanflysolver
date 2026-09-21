@@ -1,1212 +1,371 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Jeevan Fly Solver | Floor Walk & Continuous Learning Lab</title>
-    <!-- Three.js Engine -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- OrbitControls -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Jeevan Fly Solver - 3D Sanctuary & WCA Cube Lab</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: #0f172a; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #f8fafc; }
     
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background: #030712; color: #f3f4f6; overflow: hidden; height: 100vh; width: 100vw; user-select: none; }
-        
-        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; }
+    #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+    
+    /* Responsive Overlay UI */
+    .hud-layer { position: absolute; z-index: 10; pointer-events: none; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; }
+    .interactive { pointer-events: auto; }
 
-        /* HUD & UI Layer */
-        .hud {
-            position: absolute; z-index: 10; pointer-events: none;
-            display: flex; flex-direction: column; justify-content: space-between;
-            height: 100vh; width: 100vw; padding: 14px;
-        }
-        .interactive { pointer-events: auto; }
+    /* Top Navigation Bar */
+    .top-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .title-card { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 12px; }
+    .title-card h1 { font-size: 16px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
+    .title-card p { font-size: 11px; color: #94a3b8; margin-top: 2px; }
 
-        header {
-            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.12); padding: 10px 18px;
-            border-radius: 16px; display: flex; justify-content: space-between;
-            align-items: center; max-width: 1300px; margin: 0 auto; width: 100%;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+    .stats-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .stat-badge { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); padding: 6px 12px; border-radius: 10px; text-align: center; min-width: 70px; }
+    .stat-badge .label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 600; }
+    .stat-badge .val { font-size: 14px; font-weight: 700; color: #f1f5f9; }
 
-        h1 { font-size: 1.1rem; color: #38bdf8; display: flex; align-items: center; gap: 8px; font-weight: 700; }
-        .domain-tag { background: #0284c7; color: white; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; }
-        .cube-badge { background: #10b981; color: #0f172a; font-weight: bold; font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; }
-        .coming-soon-badge { background: #64748b; color: #f8fafc; font-size: 0.6rem; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; margin-left: 4px; }
+    /* Controls Panel */
+    .action-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; max-width: 100%; }
+    .btn { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #f8fafc; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; transition: all 0.2s; }
+    .btn:hover { background: rgba(51, 65, 85, 1); border-color: #38bdf8; }
+    .btn-primary { background: #0284c7; border-color: #38bdf8; }
+    .btn-primary:hover { background: #0369a1; }
+    
+    /* Notebook / Log Bar */
+    .notebook-card { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 100%; max-width: 380px; max-height: 140px; overflow-y: auto; font-family: monospace; font-size: 11px; }
+    .notebook-card h3 { font-family: sans-serif; font-size: 12px; color: #38bdf8; margin-bottom: 6px; display: flex; justify-content: space-between; }
+    .move-tag { display: inline-block; background: #1e293b; padding: 2px 5px; border-radius: 4px; margin: 2px; border: 1px solid #334155; color: #f1f5f9; }
 
-        .stats-grid { display: flex; gap: 12px; }
-        .stat-card { text-align: center; }
-        .stat-value { font-size: 1.05rem; font-weight: bold; color: #f43f5e; }
-        .stat-label { font-size: 0.6rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* Modals */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-card { background: #1e293b; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; width: 100%; max-width: 440px; padding: 20px; color: #f8fafc; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+    .modal-card h2 { font-size: 18px; color: #38bdf8; margin-bottom: 8px; }
+    .modal-card p { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 16px; }
+    .modal-card textarea { width: 100%; height: 80px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #f8fafc; padding: 8px; font-family: monospace; font-size: 11px; resize: none; margin-bottom: 12px; }
 
-        /* Left Side Panel */
-        .side-panel {
-            position: absolute; top: 75px; left: 14px; width: 310px;
-            display: flex; flex-direction: column; gap: 10px; max-height: calc(100vh - 160px);
-        }
-
-        /* Right Camera & Toy Preset Bar */
-        .view-panel {
-            position: absolute; top: 75px; right: 14px; width: 230px;
-            display: flex; flex-direction: column; gap: 8px;
-        }
-
-        .card {
-            background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.12); padding: 12px; border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
-        }
-
-        .meter-container { margin-bottom: 6px; }
-        .meter-label { display: flex; justify-content: space-between; font-size: 0.72rem; margin-bottom: 3px; color: #cbd5e1; }
-        .meter-bar { height: 7px; background: #1e293b; border-radius: 4px; overflow: hidden; }
-        .meter-fill { height: 100%; transition: width 0.3s ease; }
-        
-        #energy-fill { background: linear-gradient(90deg, #f59e0b, #10b981); }
-        #happy-fill { background: linear-gradient(90deg, #ec4899, #8b5cf6); }
-        #brain-fill { background: linear-gradient(90deg, #38bdf8, #c084fc); }
-
-        .notebook {
-            max-height: 110px; overflow-y: auto; font-family: monospace; font-size: 0.7rem;
-            background: rgba(2, 6, 23, 0.8); border-radius: 8px; padding: 6px; border: 1px solid #1e293b;
-        }
-        .notebook::-webkit-scrollbar { width: 4px; }
-        .notebook::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        .notebook-entry { border-bottom: 1px dashed #334155; padding: 3px 0; color: #34d399; display: flex; justify-content: space-between; }
-
-        /* Camera / Toy Action Buttons */
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .toy-btn {
-            background: #1e293b; color: #e2e8f0; border: 1px solid #334155; padding: 8px;
-            border-radius: 8px; font-size: 0.72rem; font-weight: 600; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; justify-content: center; gap: 4px;
-        }
-        .toy-btn:hover { background: #0284c7; color: white; border-color: #38bdf8; transform: translateY(-1px); }
-        .toy-btn.active { background: #0284c7; border-color: #38bdf8; }
-
-        /* Controls Bottom */
-        .controls {
-            background: rgba(15, 23, 42, 0.92); backdrop-filter: blur(14px);
-            border: 1px solid rgba(255, 255, 255, 0.12); padding: 10px 14px;
-            border-radius: 16px; display: flex; gap: 8px; justify-content: center; align-items: center; flex-wrap: wrap;
-            max-width: 980px; margin: 0 auto 10px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        button {
-            background: #0284c7; color: white; border: none; padding: 8px 12px;
-            border-radius: 8px; font-weight: 600; font-size: 0.75rem; cursor: pointer; transition: all 0.2s;
-            display: flex; align-items: center; gap: 5px;
-        }
-        button:hover { background: #0369a1; transform: translateY(-2px); }
-        button.secondary { background: #334155; }
-        button.secondary:hover { background: #475569; }
-        button.solve-btn { background: linear-gradient(135deg, #10b981, #059669); font-weight: 700; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3); }
-        button.solve-btn:hover { background: linear-gradient(135deg, #059669, #047857); transform: translateY(-2px); }
-        button.brain-btn { background: linear-gradient(135deg, #8b5cf6, #ec4899); }
-        button.danger-btn { background: linear-gradient(135deg, #ef4444, #b91c1c); }
-
-        /* Save Banner */
-        .save-banner {
-            display: flex; justify-content: space-between; align-items: center; gap: 4px;
-            background: rgba(30, 41, 59, 0.8); border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 8px; padding: 6px 8px; font-size: 0.68rem; color: #94a3b8; margin-top: 6px;
-        }
-
-        /* Save Code Box Input */
-        .code-area {
-            width: 100%; height: 90px; background: #020617; border: 1px solid #334155; color: #38bdf8;
-            font-family: monospace; font-size: 0.75rem; border-radius: 8px; padding: 8px; margin: 10px 0;
-            resize: none; word-break: break-all;
-        }
-
-        /* Toast notification */
-        #toast {
-            position: fixed; top: 18px; left: 50%; transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.95); border: 1px solid #38bdf8; color: #38bdf8;
-            padding: 8px 18px; border-radius: 20px; font-size: 0.8rem; font-weight: bold;
-            z-index: 200; display: none; backdrop-filter: blur(12px); box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-
-        /* Modals & Startup Screen */
-        .full-overlay {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(3, 7, 18, 0.92); backdrop-filter: blur(16px); z-index: 100;
-            display: flex; justify-content: center; align-items: center; padding: 20px;
-        }
-
-        .menu-box {
-            background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(56, 189, 248, 0.3);
-            border-radius: 24px; padding: 26px; max-width: 580px; width: 100%; text-align: center;
-            box-shadow: 0 0 50px rgba(56, 189, 248, 0.2);
-        }
-
-        .menu-box h1 { font-size: 1.7rem; color: #38bdf8; justify-content: center; margin-bottom: 6px; }
-        .menu-box p.subtitle { color: #94a3b8; font-size: 0.82rem; margin-bottom: 18px; }
-
-        .mode-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
-        .mode-card {
-            background: rgba(30, 41, 59, 0.7); border: 2px solid #334155; border-radius: 12px;
-            padding: 12px; text-align: left;
-        }
-        .mode-title { font-weight: bold; color: #f3f4f6; font-size: 0.85rem; margin-bottom: 4px; display: flex; justify-content: space-between; }
-        .mode-desc { font-size: 0.7rem; color: #94a3b8; line-height: 1.35; }
-
-        .start-btn {
-            background: linear-gradient(135deg, #0284c7, #38bdf8); color: white;
-            width: 100%; padding: 12px; font-size: 0.95rem; font-weight: bold; border-radius: 12px;
-            box-shadow: 0 4px 20px rgba(2, 132, 199, 0.4); margin-bottom: 8px;
-        }
-
-        #nap-overlay {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(15, 23, 42, 0.96); border: 2px solid #8b5cf6; padding: 25px 35px;
-            border-radius: 20px; text-align: center; display: none; z-index: 20; backdrop-filter: blur(16px);
-        }
-
-        #brain-modal {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(15, 23, 42, 0.98); border: 1px solid #38bdf8; padding: 22px;
-            border-radius: 20px; width: 90%; max-width: 600px; display: none; z-index: 30;
-            backdrop-filter: blur(20px); max-height: 85vh; overflow-y: auto;
-        }
-        #brain-modal h2 { color: #38bdf8; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 1.1rem; }
-        .modal-body { font-size: 0.82rem; line-height: 1.5; color: #cbd5e1; }
-        .modal-body p { margin-bottom: 8px; }
-        .modal-body ul { margin-left: 18px; margin-bottom: 8px; }
-        .close-btn { cursor: pointer; color: #f43f5e; font-size: 1.2rem; font-weight: bold; }
-    </style>
+    /* Mobile adjustments */
+    @media (max-width: 600px) {
+      .hud-layer { padding: 8px; }
+      .title-card h1 { font-size: 14px; }
+      .stat-badge { min-width: 55px; padding: 4px 8px; }
+      .stat-badge .val { font-size: 12px; }
+      .notebook-card { max-width: 100%; }
+    }
+  </style>
 </head>
 <body>
-    <div id="canvas-container"></div>
-    <div id="toast">Session State Saved!</div>
 
-    <!-- STARTUP OVERLAY -->
-    <div id="startup-overlay" class="full-overlay interactive">
-        <div class="menu-box">
-            <h1>🪰 Jeevan Fly Solver v2.5</h1>
-            <p class="subtitle">Floor Walking Drosophila & Infinite Learning Cube Solver</p>
+  <div id="canvas-container"></div>
 
-            <div class="mode-cards">
-                <div class="mode-card">
-                    <div class="mode-title">Mini-Cube Floor Lab <span style="color:#34d399;">Active</span></div>
-                    <div class="mode-desc">Jeevan Fly continuously explores & learns move physics at its floor workbench!</div>
-                </div>
-                <div class="mode-card">
-                    <div class="mode-title">4x4 Master Mode <span class="coming-soon-badge">Coming Soon</span></div>
-                    <div class="mode-desc">Future expansion! For now Jeevan Fly focuses on mastering 3x3 speed-solving.</div>
-                </div>
-            </div>
+  <div class="hud-layer">
+    <!-- Top HUD -->
+    <div class="top-bar">
+      <div class="title-card interactive">
+        <h1>🪰 Jeevan Fly Solver <span style="font-size: 10px; background: #0284c7; padding: 2px 6px; border-radius: 10px; color: white;">Offline v2.0</span></h1>
+        <p>Continuous Neural WCA 3D Sanctuary</p>
+      </div>
 
-            <div style="background: rgba(30,41,59,0.5); padding: 10px 14px; border-radius: 12px; font-size: 0.74rem; text-align: left; color: #cbd5e1; margin-bottom: 16px; line-height: 1.4;">
-                <strong>🎮 Continuous Learning Mechanics:</strong><br>
-                • <strong>Infinite Exploration:</strong> Jeevan Fly walks around pushing mini cube slices endlessly to gather knowledge.<br>
-                • <strong>Interactive Solving:</strong> Click <strong>🎲 Scramble</strong> then <strong>🧩 Solve Cube</strong> to watch Jeevan Fly execute the solution sequence!<br>
-                • <strong>Speed Scaling:</strong> Every successful solve permanently speeds up Jeevan Fly's solving ability!
-            </div>
-
-            <button class="start-btn" onclick="launchSimulation()">🚀 Launch Continuous Learning Lab</button>
+      <div class="stats-group interactive">
+        <div class="stat-badge">
+          <div class="label">Brain Cap</div>
+          <div class="val" id="brain-cap-val">12%</div>
         </div>
+        <div class="stat-badge">
+          <div class="label">Solves</div>
+          <div class="val" id="solves-val">0</div>
+        </div>
+        <div class="stat-badge">
+          <div class="label">Speed</div>
+          <div class="val" id="speed-val">1.0x</div>
+        </div>
+      </div>
     </div>
 
-    <!-- MAIN HUD UI -->
-    <div class="hud">
-        <header class="interactive">
-            <h1>🪰 JeevanFlySolver <span class="domain-tag">jeevanflysolver.com</span> <span class="cube-badge">3x3 Mini-Lab</span> <span class="coming-soon-badge">4x4 Coming Soon</span></h1>
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="solves-count" style="color: #10b981;">0</div>
-                    <div class="stat-label">Cubes Solved</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="move-count" style="color: #38bdf8;">0</div>
-                    <div class="stat-label">Leg Pushes</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="knowledge-count" style="color: #a78bfa;">0 XP</div>
-                    <div class="stat-label">Knowledge Base</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="solver-speed-text" style="color: #f59e0b;">1.0x</div>
-                    <div class="stat-label">Solve Speed</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="fly-state-text" style="color: #34d399;">EXPLORING</div>
-                    <div class="stat-label">Current Action</div>
-                </div>
-            </div>
-        </header>
-
-        <!-- Left Status Side Panel -->
-        <div class="side-panel interactive">
-            <div class="card">
-                <h3 style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 6px;">Drosophila Health & Knowledge Meter</h3>
-                <div class="meter-container">
-                    <div class="meter-label"><span>Stamina Energy</span><span id="energy-val">100%</span></div>
-                    <div class="meter-bar"><div class="meter-fill" id="energy-fill" style="width: 100%;"></div></div>
-                </div>
-                <div class="meter-container">
-                    <div class="meter-label"><span>Mood / Happiness</span><span id="happy-val">100%</span></div>
-                    <div class="meter-bar"><div class="meter-fill" id="happy-fill" style="width: 100%;"></div></div>
-                </div>
-                <div class="meter-container">
-                    <div class="meter-label"><span>Neural Knowledge XP</span><span id="brain-val">0 XP</span></div>
-                    <div class="meter-bar"><div class="meter-fill" id="brain-fill" style="width: 0%;"></div></div>
-                </div>
-
-                <div class="save-banner">
-                    <span id="session-id-display">ID: loading...</span>
-                    <button style="padding: 2px 6px; font-size: 0.62rem;" onclick="copySaveLink()">📋 Copy Save Link</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3 style="font-size: 0.8rem; color: #38bdf8; margin-bottom: 6px; display: flex; justify-content: space-between;">
-                    <span>📖 Standard Notation Log</span>
-                    <span style="font-size: 0.65rem; color: #94a3b8;">WCA Moves</span>
-                </h3>
-                <div class="notebook" id="notebook-list">
-                    <div style="color: #64748b; font-style: italic;">Hovering & discovering standard notation sequences...</div>
-                </div>
-            </div>
+    <!-- Bottom HUD -->
+    <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
+      <div class="notebook-card interactive">
+        <h3><span>🧠 Neural WCA Notebook</span> <span id="wca-status" style="color:#94a3b8; font-weight:normal;">Exploring...</span></h3>
+        <div id="wca-log-container">
+          <span class="move-tag">Ready</span>
         </div>
+      </div>
 
-        <!-- Right Side: Camera Presets & Interactive Toys Panel -->
-        <div class="view-panel interactive">
-            <div class="card">
-                <h3 style="font-size: 0.8rem; color: #38bdf8; margin-bottom: 8px;">🎥 Camera Angles</h3>
-                <div class="btn-grid">
-                    <button class="toy-btn active" id="cam-cube" onclick="setCameraPreset('cube')">🎲 Main Cube</button>
-                    <button class="toy-btn" id="cam-table" onclick="setCameraPreset('table')">🪵 Workbench</button>
-                    <button class="toy-btn" id="cam-toys" onclick="setCameraPreset('toys')">🌀 Toys Corner</button>
-                    <button class="toy-btn" id="cam-snack" onclick="setCameraPreset('snack')">🍲 Snack Bar</button>
-                </div>
-            </div>
-
-            <div class="card">
-                <h3 style="font-size: 0.8rem; color: #ec4899; margin-bottom: 8px;">🧸 Interactive Toys</h3>
-                <div class="btn-grid" style="grid-template-columns: 1fr;">
-                    <button class="toy-btn" onclick="spinToy()"><span style="color:#facc15;">🌀 Spin Fidget Toy</span></button>
-                    <button class="toy-btn" onclick="bounceBall()"><span style="color:#38bdf8;">🎾 Bounce Bouncing Ball</span></button>
-                    <button class="toy-btn" onclick="feedPoori()"><span style="color:#f59e0b;">🍲 Feed Poori & Chaat</span></button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bottom Main Controls -->
-        <div class="controls interactive">
-            <button onclick="scrambleCube()">🎲 Scramble</button>
-            <button class="solve-btn" onclick="triggerAutoSolve()">🧩 Solve Cube</button>
-            <button id="speed-btn" class="secondary" onclick="toggleSpeed()">⚡ Boost: 1x</button>
-            <button id="audio-btn" class="secondary" onclick="toggleAudio()">🔊 Sound: ON</button>
-            <button class="brain-btn" onclick="openSaveCodeModal()">💾 Save / Load Code</button>
-            <button class="secondary" onclick="toggleBrainModal()">🧠 Knowledge Info</button>
-            <button class="danger-btn" onclick="resetBrain()">💥 Reset Knowledge</button>
-        </div>
-
-        <!-- Nap Overlay -->
-        <div id="nap-overlay" class="interactive">
-            <h2 style="color: #a78bfa; margin-bottom: 6px; font-size: 1.1rem;">😴 Drosophila is Napping...</h2>
-            <p style="font-size: 0.78rem; color: #cbd5e1; margin-bottom: 10px;">Consolidating cube knowledge and restoring energy.</p>
-            <div id="nap-timer" style="font-size: 1.8rem; font-weight: bold; color: #38bdf8; margin-bottom: 12px;">02:00</div>
-            <button onclick="wakeUp()" class="brain-btn" style="margin: 0 auto;">⚡ Wake Up Early</button>
-        </div>
-
-        <!-- Save Code Modal -->
-        <div id="save-code-modal" class="interactive" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(15, 23, 42, 0.98); border: 1px solid #38bdf8; padding: 20px; border-radius: 20px; width: 90%; max-width: 500px; display: none; z-index: 40; backdrop-filter: blur(20px);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <h3 style="color: #38bdf8; font-size: 1rem;">💾 Save / Load Knowledge Code</h3>
-                <span class="close-btn" onclick="closeSaveCodeModal()">&times;</span>
-            </div>
-            <p style="font-size: 0.75rem; color: #94a3b8; line-height: 1.4;">Copy your save code string below to store your learned knowledge, or paste a save code string and click "Load Code":</p>
-            <textarea id="save-code-input" class="code-area" placeholder="Paste your save code string here..."></textarea>
-            <div style="display: flex; gap: 8px; justify-content: flex-end;">
-                <button onclick="generateSaveCodeText()" class="secondary">📋 Generate Code</button>
-                <button onclick="copySaveCodeText()">📑 Copy Code</button>
-                <button onclick="importSaveCodeText()" class="brain-btn">📥 Load Code</button>
-            </div>
-        </div>
-
-        <!-- Brain Modal -->
-        <div id="brain-modal" class="interactive">
-            <h2>
-                <span>🧠 Infinite Knowledge & Auto-Solver Mechanics</span>
-                <span class="close-btn" onclick="toggleBrainModal()">&times;</span>
-            </h2>
-            <div class="modal-body">
-                <p><strong>Continuous Knowledge Building & Solving:</strong></p>
-                <p>Jeevan Fly stays in its room on the floor at the mini-cube workbench, continuously executing leg pushes to build an internal graph of cube physics and reverse transformations.</p>
-                <p><strong>How Solving Works:</strong></p>
-                <ul>
-                    <li><strong>Continuous Exploration:</strong> Jeevan Fly explores moves endlessly in the background.</li>
-                    <li><strong>Scramble & Solve:</strong> Click <strong>Scramble</strong> to jumble the cube, then click <strong>Solve Cube</strong>. Jeevan Fly will use its accumulated neural knowledge to execute inverse step-by-step moves to restore the solved state!</li>
-                    <li><strong>Solving Speed Boost:</strong> Each successful solve permanently grants a speed boost, allowing Jeevan Fly to push mini cube slices faster and faster!</li>
-                    <li><strong>4x4 Mode:</strong> Currently marked as <i>Coming Soon</i> to keep Jeevan Fly focused on 3x3 speed mastery.</li>
-                </ul>
-            </div>
-        </div>
+      <div class="action-bar interactive">
+        <button class="btn btn-primary" onclick="triggerScramble()">🎲 Scramble</button>
+        <button class="btn" onclick="toggleSpeed()">⚡ Speed</button>
+        <button class="btn" onclick="feedFly()">🍲 Feed Poori</button>
+        <button class="btn" onclick="openSaveModal()">💾 Save/Load</button>
+        <button class="btn" onclick="resetBrain()" style="color: #f87171;">🧠 Reset</button>
+      </div>
     </div>
+  </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+  <!-- Save/Load Modal -->
+  <div class="modal-overlay" id="save-modal">
+    <div class="modal-card">
+      <h2>💾 Offline Save Code Manager</h2>
+      <p>Copy your offline progress code string below or paste a saved code to restore Jeevan Fly's brain capacity and learned moves on any offline device!</p>
+      <textarea id="save-code-box" readonly></textarea>
+      <div style="display: flex; gap: 8px; justify-content: flex-end;">
+        <button class="btn" onclick="closeSaveModal()">Close</button>
+        <button class="btn btn-primary" onclick="copySaveCode()">Copy Code</button>
+        <button class="btn" onclick="importSaveCode()" style="background: #16a34a;">Import Code</button>
+      </div>
+    </div>
+  </div>
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'jeevan-fly-app';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : null;
+  <!-- Three.js Libraries (Loaded locally or fallbacks) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
-        let db = null;
-        let auth = null;
-        let currentUser = null;
-        let saveSessionId = "";
+  <script>
+    // Global State Container (Stored in LocalStorage for shared offline persistence)
+    const GLOBAL_STORAGE_KEY = 'jeevan_fly_solver_offline_data';
+    
+    let state = {
+      brainCapacity: 12.5,
+      solvesCount: 0,
+      speedMultiplier: 1.0,
+      learnedMoves: ['U', "R'", 'F', 'D'],
+      stamina: 100,
+      lastTimestamp: Date.now()
+    };
 
-        const urlParams = new URLSearchParams(window.location.search);
-        let urlSession = urlParams.get('session');
-        if (!urlSession) {
-            urlSession = 'fly-' + Math.random().toString(36).substring(2, 9);
-            try {
-                window.history.replaceState({}, '', `?session=${urlSession}`);
-            } catch (e) {
-                console.warn("Skipped history replaceState in sandboxed preview:", e);
-            }
+    // Load Offline Data
+    function loadOfflineState() {
+      try {
+        const data = localStorage.getItem(GLOBAL_STORAGE_KEY);
+        if (data) {
+          state = Object.assign(state, JSON.parse(data));
+          updateUI();
         }
-        saveSessionId = urlSession;
-        document.getElementById('session-id-display').innerText = `ID: ${saveSessionId}`;
+      } catch(e) { console.warn('LocalStorage unavailable'); }
+    }
 
-        if (firebaseConfig) {
-            try {
-                const app = initializeApp(firebaseConfig);
-                db = getFirestore(app);
-                auth = getAuth(app);
+    function saveOfflineState() {
+      try {
+        state.lastTimestamp = Date.now();
+        localStorage.setItem(GLOBAL_STORAGE_KEY, JSON.stringify(state));
+      } catch(e) {}
+    }
 
-                const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
-                    }
-                    currentUser = auth.currentUser;
-                    if (currentUser) {
-                        listenToFirestoreState();
-                    }
-                };
-                initAuth().catch(console.warn);
-            } catch(e) { console.warn("Firebase init offline mode", e); }
+    // Three.js Scene Setup
+    let scene, camera, renderer, controls;
+    let flyMesh, cubeGroup;
+    let movesList = ['U', "U'", 'D', "D'", 'R', "R'", 'L', "L'", 'F', "F'", 'B', "B'"];
+
+    function init3D() {
+      const container = document.getElementById('canvas-container');
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x0f172a);
+
+      camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(5, 4, 7);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+
+      // Lights
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambientLight);
+
+      const dirLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
+      dirLight.position.set(5, 10, 7);
+      scene.add(dirLight);
+
+      // Create Sanctuary Room
+      createRoom();
+
+      // Create Rubik's Cube
+      createCube();
+
+      // Create Drosophila Fly Model
+      createFly();
+
+      // Window resize
+      window.addEventListener('resize', onWindowResize);
+
+      // Start loop
+      animate();
+    }
+
+    function createRoom() {
+      // Room floor
+      const floorGeo = new THREE.PlaneGeometry(12, 12);
+      const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -1.5;
+      scene.add(floor);
+    }
+
+    function createCube() {
+      cubeGroup = new THREE.Group();
+      const colors = [0xb91c1c, 0x15803d, 0x1d4ed8, 0xc2410c, 0xfacc15, 0xf8fafc];
+      
+      for (let x = -1; x <= 1; x++) {
+        for (let y = -1; y <= 1; y++) {
+          for (let z = -1; z <= 1; z++) {
+            const geo = new THREE.BoxGeometry(0.58, 0.58, 0.58);
+            const mats = colors.map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.3 }));
+            const cubie = new THREE.Mesh(geo, mats);
+            cubie.position.set(x * 0.6, y * 0.6, z * 0.6);
+            cubeGroup.add(cubie);
+          }
         }
+      }
+      scene.add(cubeGroup);
+    }
 
-        function listenToFirestoreState() {
-            if (!db || !currentUser) return;
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'fly_sessions', saveSessionId);
-            
-            onSnapshot(docRef, (docSnap) => {
-                if (docSnap.exists()) {
-                    const data = docSnap.data();
-                    if (data.totalMoves !== undefined && window.loadCloudState) window.loadCloudState(data);
-                }
-            }, (err) => console.warn("Firestore sync error:", err));
-        }
+    function createFly() {
+      flyMesh = new THREE.Group();
+      
+      // Body
+      const bodyGeo = new THREE.SphereGeometry(0.12, 8, 8);
+      const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.5 });
+      const body = new THREE.Mesh(bodyGeo, bodyMat);
+      flyMesh.add(body);
 
-        window.saveCloudState = function(stateObj) {
-            try {
-                localStorage.setItem(`fly_save_${saveSessionId}`, JSON.stringify(stateObj));
-            } catch(e) {}
+      // Wings
+      const wingGeo = new THREE.PlaneGeometry(0.15, 0.25);
+      const wingMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
+      
+      const wingL = new THREE.Mesh(wingGeo, wingMat);
+      wingL.position.set(-0.1, 0.05, 0);
+      wingL.rotation.z = Math.PI / 4;
+      flyMesh.add(wingL);
 
-            if (!db || !currentUser) return;
-            const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'fly_sessions', saveSessionId);
-            setDoc(docRef, { ...stateObj, updatedAt: Date.now() }, { merge: true }).catch(err => console.warn("Save err", err));
-        };
+      const wingR = new THREE.Mesh(wingGeo, wingMat);
+      wingR.position.set(0.1, 0.05, 0);
+      wingR.rotation.z = -Math.PI / 4;
+      flyMesh.add(wingR);
 
+      flyMesh.position.set(1.5, 0.5, 1.5);
+      scene.add(flyMesh);
+    }
+
+    // Simulation Loop
+    let angle = 0;
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Smooth orbit flying animation around cube
+      angle += 0.02 * state.speedMultiplier;
+      flyMesh.position.x = Math.cos(angle) * 1.8;
+      flyMesh.position.z = Math.sin(angle) * 1.8;
+      flyMesh.position.y = Math.sin(angle * 2) * 0.4 + 0.2;
+      flyMesh.lookAt(cubeGroup.position);
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function onWindowResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // UI Updates & Mechanics
+    function updateUI() {
+      document.getElementById('brain-cap-val').innerText = state.brainCapacity.toFixed(1) + '%';
+      document.getElementById('solves-val').innerText = state.solvesCount;
+      document.getElementById('speed-val').innerText = state.speedMultiplier.toFixed(1) + 'x';
+
+      const logContainer = document.getElementById('wca-log-container');
+      logContainer.innerHTML = state.learnedMoves.map(m => `<span class="move-tag">${m}</span>`).join('');
+    }
+
+    function triggerScramble() {
+      const randomMove = movesList[Math.floor(Math.random() * movesList.length)];
+      state.learnedMoves.push(randomMove);
+      if (state.learnedMoves.length > 12) state.learnedMoves.shift();
+      
+      state.brainCapacity = Math.min(100, state.brainCapacity + 0.5);
+      saveOfflineState();
+      updateUI();
+
+      // Visual spin effect on cube
+      cubeGroup.rotation.y += Math.PI / 2;
+    }
+
+    function toggleSpeed() {
+      state.speedMultiplier = state.speedMultiplier >= 4.0 ? 1.0 : state.speedMultiplier + 0.5;
+      saveOfflineState();
+      updateUI();
+    }
+
+    function feedFly() {
+      state.stamina = 100;
+      state.brainCapacity = Math.min(100, state.brainCapacity + 1.2);
+      saveOfflineState();
+      updateUI();
+      alert('🍲 Jeevan Fly enjoyed fresh Poori Masala! Brain capacity increased.');
+    }
+
+    function resetBrain() {
+      if (confirm('Are you sure you want to reset Jeevan Fly\'s neural capacity back to baseline?')) {
+        state.brainCapacity = 12.5;
+        state.solvesCount = 0;
+        state.learnedMoves = ['U', "R'", 'F'];
+        saveOfflineState();
+        updateUI();
+      }
+    }
+
+    // Save/Load Modal Handlers
+    function openSaveModal() {
+      document.getElementById('save-code-box').value = btoa(JSON.stringify(state));
+      document.getElementById('save-modal').classList.add('active');
+    }
+
+    function closeSaveModal() {
+      document.getElementById('save-modal').classList.remove('active');
+    }
+
+    function copySaveCode() {
+      const box = document.getElementById('save-code-box');
+      box.select();
+      document.execCommand('copy');
+      alert('Save code copied to clipboard!');
+    }
+
+    function importSaveCode() {
+      const code = prompt('Paste your offline save code string below:');
+      if (code) {
         try {
-            const localSaved = localStorage.getItem(`fly_save_${saveSessionId}`);
-            if (localSaved) {
-                const parsed = JSON.parse(localSaved);
-                if (parsed && window.loadCloudState) window.loadCloudState(parsed);
-            }
-        } catch(e) {}
-    </script>
-
-    <script>
-        // Standard WCA Rubik's Cube Move Definitions
-        // U, U', D, D', R, R', L, L', F, F', B, B'
-        const STANDARD_MOVES = {
-            'R':  { axis: 'x', layer: 2, angle: -Math.PI / 2, offset: new THREE.Vector3(1.8, 0, 0), rot: new THREE.Vector3(0, Math.PI / 2, 0) },
-            "R'": { axis: 'x', layer: 2, angle: Math.PI / 2,  offset: new THREE.Vector3(1.8, 0, 0), rot: new THREE.Vector3(0, Math.PI / 2, 0) },
-            'L':  { axis: 'x', layer: 0, angle: Math.PI / 2,  offset: new THREE.Vector3(-1.8, 0, 0), rot: new THREE.Vector3(0, -Math.PI / 2, 0) },
-            "L'": { axis: 'x', layer: 0, angle: -Math.PI / 2, offset: new THREE.Vector3(-1.8, 0, 0), rot: new THREE.Vector3(0, -Math.PI / 2, 0) },
-            'U':  { axis: 'y', layer: 2, angle: -Math.PI / 2, offset: new THREE.Vector3(0, 1.8, 0), rot: new THREE.Vector3(-Math.PI / 2, 0, 0) },
-            "U'": { axis: 'y', layer: 2, angle: Math.PI / 2,  offset: new THREE.Vector3(0, 1.8, 0), rot: new THREE.Vector3(-Math.PI / 2, 0, 0) },
-            'D':  { axis: 'y', layer: 0, angle: Math.PI / 2,  offset: new THREE.Vector3(0, -1.8, 0), rot: new THREE.Vector3(Math.PI / 2, 0, 0) },
-            "D'": { axis: 'y', layer: 0, angle: -Math.PI / 2, offset: new THREE.Vector3(0, -1.8, 0), rot: new THREE.Vector3(Math.PI / 2, 0, 0) },
-            'F':  { axis: 'z', layer: 2, angle: -Math.PI / 2, offset: new THREE.Vector3(0, 0, 1.8), rot: new THREE.Vector3(0, 0, 0) },
-            "F'": { axis: 'z', layer: 2, angle: Math.PI / 2,  offset: new THREE.Vector3(0, 0, 1.8), rot: new THREE.Vector3(0, 0, 0) },
-            'B':  { axis: 'z', layer: 0, angle: Math.PI / 2,  offset: new THREE.Vector3(0, 0, -1.8), rot: new THREE.Vector3(0, Math.PI, 0) },
-            "B'": { axis: 'z', layer: 0, angle: -Math.PI / 2, offset: new THREE.Vector3(0, 0, -1.8), rot: new THREE.Vector3(0, Math.PI, 0) }
-        };
-
-        const INVERSE_MOVES = {
-            'R': "R'", "R'": 'R',
-            'L': "L'", "L'": 'L',
-            'U': "U'", "U'": 'U',
-            'D': "D'", "D'": 'D',
-            'F': "F'", "F'": 'F',
-            'B': "B'", "B'": 'B'
-        };
-
-        const MOVE_KEYS = Object.keys(STANDARD_MOVES);
-
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x030712, 0.02);
-
-        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
-        camera.position.set(0, 1.5, 6.5);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-        container.appendChild(renderer.domElement);
-
-        const controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.enableDamping = true;
-        controls.dampingFactor = 0.05;
-        controls.target.set(0, 0.5, 0);
-        controls.maxDistance = 22;
-        controls.minDistance = 1.2;
-
-        scene.add(new THREE.AmbientLight(0xffffff, 0.7));
-
-        const mainLight = new THREE.DirectionalLight(0x38bdf8, 1.2);
-        mainLight.position.set(6, 12, 8);
-        mainLight.castShadow = true;
-        scene.add(mainLight);
-
-        const warmLamp = new THREE.PointLight(0xf59e0b, 1.6, 14);
-        warmLamp.position.set(-3.5, 2, 2.5);
-        scene.add(warmLamp);
-
-        const toyNeon = new THREE.PointLight(0xec4899, 1.5, 12);
-        toyNeon.position.set(3.5, 2.5, 2);
-        scene.add(toyNeon);
-
-        const floorGeo = new THREE.PlaneGeometry(26, 26);
-        const floorMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.8, metalness: 0.2 });
-        const floor = new THREE.Mesh(floorGeo, floorMat);
-        floor.rotation.x = -Math.PI / 2;
-        floor.position.y = -2.5;
-        floor.receiveShadow = true;
-        scene.add(floor);
-
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0x0a0f1d, roughness: 0.9 });
-        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(26, 14), wallMat);
-        backWall.position.set(0, 4.5, -7);
-        scene.add(backWall);
-
-        const tableGroup = new THREE.Group();
-        const tableTop = new THREE.Mesh(new THREE.CylinderGeometry(1.6, 1.6, 0.1, 24), new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.5 }));
-        tableTop.position.set(0, -1.8, 0);
-        tableTop.receiveShadow = true;
-        const tableLeg = new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.8, 12), new THREE.MeshStandardMaterial({ color: 0x1e293b }));
-        tableLeg.position.set(0, -2.2, 0);
-        tableGroup.add(tableTop, tableLeg);
-        scene.add(tableGroup);
-
-        const bedGroup = new THREE.Group();
-        bedGroup.name = "Hammock Bed";
-        const leafMat = new THREE.MeshStandardMaterial({ color: 0x10b981, roughness: 0.5 });
-        const leaf = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.4, 0.1, 16), leafMat);
-        leaf.scale.set(1, 1, 0.6);
-        const pillow = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.15, 0.4), new THREE.MeshStandardMaterial({ color: 0xf43f5e }));
-        pillow.position.set(-0.8, 0.1, 0);
-        bedGroup.add(leaf, pillow);
-        bedGroup.position.set(-4.5, -2.4, -2.5);
-        scene.add(bedGroup);
-
-        const foodStationGroup = new THREE.Group();
-        foodStationGroup.name = "Poori Chaat Station";
-        const plate = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 0.08, 32), new THREE.MeshStandardMaterial({ color: 0xd1d5db, metalness: 0.8, roughness: 0.2 }));
-        foodStationGroup.add(plate);
-
-        const pooriMat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.6 });
-        const poori1 = new THREE.Mesh(new THREE.SphereGeometry(0.4, 16, 12), pooriMat);
-        poori1.scale.set(1.2, 0.5, 1.2); poori1.position.set(-0.3, 0.2, -0.2);
-        foodStationGroup.add(poori1);
-        foodStationGroup.position.set(-3.5, -2.46, 2.5);
-        scene.add(foodStationGroup);
-
-        const spinnerGroup = new THREE.Group();
-        spinnerGroup.name = "Fidget Spinner";
-        const centerCap = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.28, 0.12, 16), new THREE.MeshStandardMaterial({ color: 0x8b5cf6, metalness: 0.5 }));
-        spinnerGroup.add(centerCap);
-        for (let i = 0; i < 3; i++) {
-            const angle = (i * Math.PI * 2) / 3;
-            const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.55, 12), new THREE.MeshStandardMaterial({ color: 0xec4899 }));
-            arm.rotation.z = Math.PI / 2; arm.position.set(Math.cos(angle) * 0.48, 0, Math.sin(angle) * 0.48); arm.rotation.y = -angle;
-            const weight = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.22, 0.14, 12), new THREE.MeshStandardMaterial({ color: 0xfacc15, metalness: 0.8 }));
-            weight.position.set(Math.cos(angle) * 0.75, 0, Math.sin(angle) * 0.75);
-            spinnerGroup.add(arm, weight);
+          const loaded = JSON.parse(atob(code));
+          state = Object.assign(state, loaded);
+          saveOfflineState();
+          updateUI();
+          closeSaveModal();
+          alert('Save state imported successfully!');
+        } catch(e) {
+          alert('Invalid save code string format.');
         }
-        spinnerGroup.position.set(3.5, -2.35, 1.8);
-        scene.add(spinnerGroup);
-
-        const toyBall = new THREE.Mesh(new THREE.SphereGeometry(0.35, 24, 24), new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.2, metalness: 0.4 }));
-        toyBall.name = "Bouncing Ball";
-        toyBall.position.set(3.0, -2.15, 0.8);
-        toyBall.castShadow = true;
-        scene.add(toyBall);
-
-        let bigCubeGroup = new THREE.Group();
-        // Central Focal Rubik's Cube Position
-        bigCubeGroup.position.set(0, 0.5, 0);
-        scene.add(bigCubeGroup);
-
-        let cubiesBig = [];
-
-        const cubeMaterials = [
-            new THREE.MeshStandardMaterial({ color: 0xb71234, roughness: 0.2 }), // Right (Red)
-            new THREE.MeshStandardMaterial({ color: 0xff5800, roughness: 0.2 }), // Left (Orange)
-            new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.2 }), // Up (White)
-            new THREE.MeshStandardMaterial({ color: 0xffd500, roughness: 0.2 }), // Down (Yellow)
-            new THREE.MeshStandardMaterial({ color: 0x009b48, roughness: 0.2 }), // Front (Green)
-            new THREE.MeshStandardMaterial({ color: 0x0046ad, roughness: 0.2 })  // Back (Blue)
-        ];
-
-        function generateCube() {
-            while(bigCubeGroup.children.length) bigCubeGroup.remove(bigCubeGroup.children[0]);
-            cubiesBig = [];
-
-            const size = 0.92;
-            const offsetStart = 1;
-
-            for (let x = 0; x < 3; x++) {
-                for (let y = 0; y < 3; y++) {
-                    for (let z = 0; z < 3; z++) {
-                        const geomBig = new THREE.BoxGeometry(size, size, size);
-                        const cubieBig = new THREE.Mesh(geomBig, cubeMaterials);
-                        const posX = (x - offsetStart) * (size + 0.04);
-                        const posY = (y - offsetStart) * (size + 0.04);
-                        const posZ = (z - offsetStart) * (size + 0.04);
-                        
-                        cubieBig.position.set(posX, posY, posZ);
-                        bigCubeGroup.add(cubieBig);
-                        cubiesBig.push(cubieBig);
-                    }
-                }
-            }
-        }
-
-        generateCube();
-
-        const flyGroup = new THREE.Group();
-
-        const thorax = new THREE.Mesh(new THREE.SphereGeometry(0.28, 16, 16), new THREE.MeshStandardMaterial({ color: 0x3b2510, roughness: 0.6 }));
-        flyGroup.add(thorax);
-
-        const abdomen = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 16), new THREE.MeshStandardMaterial({ color: 0x1c120a, roughness: 0.7 }));
-        abdomen.scale.set(0.8, 0.8, 1.4);
-        abdomen.position.set(0, -0.05, -0.45);
-        flyGroup.add(abdomen);
-
-        const head = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), new THREE.MeshStandardMaterial({ color: 0x27180c }));
-        head.position.set(0, 0.08, 0.32);
-        flyGroup.add(head);
-
-        const eyeMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.2, metalness: 0.3 });
-        const eyeR = new THREE.Mesh(new THREE.SphereGeometry(0.09, 12, 12), eyeMat);
-        eyeR.position.set(0.12, 0.12, 0.38);
-        const eyeL = eyeR.clone(); eyeL.position.x = -0.12;
-        flyGroup.add(eyeR, eyeL);
-
-        const wingGeo = new THREE.PlaneGeometry(0.3, 0.65);
-        const wingMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.55, side: THREE.DoubleSide });
-        const wingR = new THREE.Mesh(wingGeo, wingMat);
-        wingR.position.set(0.2, 0.24, -0.12); wingR.rotation.x = Math.PI / 3;
-        const wingL = wingR.clone(); wingL.position.x = -0.2;
-        flyGroup.add(wingR, wingL);
-
-        const flyLegs = [];
-        const legMat = new THREE.MeshBasicMaterial({ color: 0x111111 });
-
-        for (let i = 0; i < 6; i++) {
-            const legPivot = new THREE.Group();
-            const legMesh = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.45), legMat);
-            legMesh.position.y = -0.22;
-            legPivot.add(legMesh);
-
-            const side = i % 2 === 0 ? 1 : -1;
-            const row = Math.floor(i / 2);
-            
-            legPivot.position.set(side * 0.2, -0.05, (1 - row) * 0.2);
-            legPivot.rotation.z = side * (-Math.PI / 4);
-            flyGroup.add(legPivot);
-            flyLegs.push(legPivot);
-        }
-
-        flyGroup.scale.set(0.6, 0.6, 0.6);
-        
-        // Free Flight Target & Positioning Variables (Prevents clipping into cube!)
-        let flyTargetPos = new THREE.Vector3(0, 1.8, 2.2);
-        flyGroup.position.copy(flyTargetPos);
-        scene.add(flyGroup);
-
-        let audioEnabled = true;
-        let audioCtx = null;
-
-        function playSound(type) {
-            if (!audioEnabled) return;
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                const now = audioCtx.currentTime;
-
-                if (type === 'click') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, now);
-                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.05);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.05);
-                    osc.start(now);
-                    osc.stop(now + 0.05);
-                } else if (type === 'bounce') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.exponentialRampToValueAtTime(320, now + 0.1);
-                    gain.gain.setValueAtTime(0.2, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now);
-                    osc.stop(now + 0.1);
-                } else if (type === 'spin') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(300, now);
-                    osc.frequency.exponentialRampToValueAtTime(800, now + 0.15);
-                    gain.gain.setValueAtTime(0.12, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now);
-                    osc.stop(now + 0.15);
-                }
-            } catch(e) {}
-        }
-
-        let toastTimeout = null;
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            if (!toast) return;
-            toast.innerText = msg;
-            toast.style.display = 'block';
-            if (toastTimeout) clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                toast.style.display = 'none';
-            }, 2800);
-        }
-
-        function copySaveLink() {
-            const url = window.location.href;
-            const dummy = document.createElement('input');
-            document.body.appendChild(dummy);
-            dummy.value = url;
-            dummy.select();
-            document.execCommand('copy');
-            document.body.removeChild(dummy);
-            showToast("📋 Save Link copied to clipboard!");
-        }
-
-        window.playSound = playSound;
-        window.showToast = showToast;
-        window.copySaveLink = copySaveLink;
-
-        let isCubeRotating = false;
-        let stamina = 100;
-        let happiness = 100;
-        let brainXP = 0;
-        let totalMoves = 0;
-        let solvesCompleted = 0;
-        let speedMultiplier = 1;
-        let state = 'SOLVING';
-        let movesHistory = [];
-        let scrambleSequence = [];
-        let learnedPatterns = [];
-        let spinnerSpeed = 0;
-        let ballVelY = 0;
-
-        function snapCubie(cubie, step) {
-            cubie.position.x = Math.round(cubie.position.x / step) * step;
-            cubie.position.y = Math.round(cubie.position.y / step) * step;
-            cubie.position.z = Math.round(cubie.position.z / step) * step;
-
-            cubie.rotation.x = Math.round(cubie.rotation.x / (Math.PI / 2)) * (Math.PI / 2);
-            cubie.rotation.y = Math.round(cubie.rotation.y / (Math.PI / 2)) * (Math.PI / 2);
-            cubie.rotation.z = Math.round(cubie.rotation.z / (Math.PI / 2)) * (Math.PI / 2);
-        }
-
-        function executeCubeTurn(moveKey, callback) {
-            if (isCubeRotating || !STANDARD_MOVES[moveKey]) return;
-            isCubeRotating = true;
-            playSound('click');
-
-            const move = STANDARD_MOVES[moveKey];
-            const axis = move.axis;
-            const layerIndex = move.layer;
-            const angle = move.angle;
-
-            const pivotBig = new THREE.Group();
-            bigCubeGroup.add(pivotBig);
-
-            const offsetStart = 1;
-            const size = 0.92;
-            const stepBig = size + 0.04;
-
-            const targetCoordBig = (layerIndex - offsetStart) * stepBig;
-            const targetsBig = cubiesBig.filter(c => Math.abs(c.position[axis] - targetCoordBig) < 0.2);
-
-            targetsBig.forEach(c => pivotBig.attach(c));
-
-            let currentRot = 0;
-            const animSpeed = 0.2 * (1 + (solvesCompleted * 0.15));
-            const step = Math.sign(angle) * Math.min(animSpeed, 0.45);
-
-            function animateTurn() {
-                if (Math.abs(currentRot) < Math.abs(angle)) {
-                    pivotBig.rotation[axis] += step;
-                    currentRot += step;
-                    requestAnimationFrame(animateTurn);
-                } else {
-                    pivotBig.rotation[axis] = angle;
-                    pivotBig.updateMatrixWorld(true);
-
-                    targetsBig.forEach(c => {
-                        bigCubeGroup.attach(c);
-                        snapCubie(c, stepBig);
-                    });
-
-                    bigCubeGroup.remove(pivotBig);
-                    isCubeRotating = false;
-                    if (callback) callback();
-                }
-            }
-            animateTurn();
-        }
-
-        function triggerLegPushMove() {
-            if (isCubeRotating || state === 'NAPPING' || state === 'EATING') return;
-
-            let chosenMove = '';
-
-            if (state === 'AUTO_SOLVING' && scrambleSequence.length > 0) {
-                const scrambleMove = scrambleSequence.pop();
-                // Execute exact inverse move to solve!
-                chosenMove = INVERSE_MOVES[scrambleMove] || scrambleMove;
-
-                document.getElementById('fly-state-text').innerText = `SOLVING ${chosenMove}`;
-                document.getElementById('fly-state-text').style.color = "#10b981";
-            } else {
-                if (state === 'AUTO_SOLVING' && scrambleSequence.length === 0) {
-                    solvesCompleted++;
-                    showToast(`🎉 Cube Solved! Total Solves: ${solvesCompleted}! Speed Boosted!`);
-                    playSound('bounce');
-                    state = 'SOLVING';
-                }
-
-                chosenMove = MOVE_KEYS[Math.floor(Math.random() * MOVE_KEYS.length)];
-
-                document.getElementById('fly-state-text').innerText = `EXECUTING ${chosenMove}`;
-                document.getElementById('fly-state-text').style.color = "#38bdf8";
-            }
-
-            const moveDef = STANDARD_MOVES[chosenMove];
-            
-            // Fly swoops smoothly to outer face position (SAFE distance: 2.1 units outside the cube face center!)
-            flyTargetPos.copy(bigCubeGroup.position).add(moveDef.offset);
-
-            // Animate leg touch tap
-            flyLegs[0].rotation.x = 0.8;
-            flyLegs[1].rotation.x = 0.8;
-
-            executeCubeTurn(chosenMove, () => {
-                totalMoves++;
-                stamina = Math.max(0, stamina - 0.3);
-                happiness = Math.max(0, happiness - 0.1);
-                brainXP += 1.5;
-
-                movesHistory.push(chosenMove);
-                flyLegs[0].rotation.x = 0;
-                flyLegs[1].rotation.x = 0;
-
-                // Fly retreats to hovering orbit after push
-                const angle = Math.random() * Math.PI * 2;
-                flyTargetPos.set(
-                    Math.cos(angle) * 2.5,
-                    0.5 + Math.sin(angle * 2) * 0.8,
-                    Math.sin(angle) * 2.5
-                );
-
-                updateHUD();
-                detectNotebookPattern();
-                saveLocalAndCloud();
-
-                if (stamina <= 10) {
-                    enterNapState();
-                } else if (state === 'SOLVING') {
-                    document.getElementById('fly-state-text').innerText = "EXPLORING";
-                    document.getElementById('fly-state-text').style.color = "#34d399";
-                }
-            });
-        }
-
-        function triggerAutoSolve() {
-            if (scrambleSequence.length === 0) {
-                showToast("🎲 Click Scramble first to give Jeevan Fly a puzzle to solve!");
-                return;
-            }
-            state = 'AUTO_SOLVING';
-            document.getElementById('fly-state-text').innerText = "SOLVING CUBE";
-            document.getElementById('fly-state-text').style.color = "#10b981";
-            showToast("🧩 Jeevan Fly is applying learned standard moves to solve the cube!");
-        }
-
-        function scrambleCube() {
-            if (isCubeRotating) return;
-            scrambleSequence = [];
-            let turnsLeft = 8 + Math.floor(Math.random() * 5);
-
-            showToast("🎲 Scrambling with standard WCA notation...");
-
-            function doScrambleStep() {
-                if (turnsLeft > 0) {
-                    const randomMove = MOVE_KEYS[Math.floor(Math.random() * MOVE_KEYS.length)];
-                    scrambleSequence.push(randomMove);
-
-                    executeCubeTurn(randomMove, () => {
-                        turnsLeft--;
-                        doScrambleStep();
-                    });
-                } else {
-                    state = 'SOLVING';
-                    showToast("🎲 Scrambled! Click 'Solve Cube' to watch Jeevan Fly execute inverse moves!");
-                }
-            }
-            doScrambleStep();
-        }
-
-        function resetBrain() {
-            brainXP = 0;
-            totalMoves = 0;
-            solvesCompleted = 0;
-            learnedPatterns = [];
-            movesHistory = [];
-            scrambleSequence = [];
-            generateCube();
-            
-            document.getElementById('notebook-list').innerHTML = '<div style="color: #64748b; font-style: italic;">Knowledge reset! Gathering move physics...</div>';
-            updateHUD();
-            saveLocalAndCloud();
-            showToast("💥 Knowledge Base & Solves Reset!");
-        }
-
-        function detectNotebookPattern() {
-            if (movesHistory.length >= 4) {
-                const last4 = movesHistory.slice(-4).join(" ");
-                if (!learnedPatterns.includes(last4) && Math.random() < 0.4) {
-                    learnedPatterns.push(last4);
-                    
-                    const list = document.getElementById('notebook-list');
-                    if (learnedPatterns.length === 1) list.innerHTML = '';
-                    
-                    const entry = document.createElement('div');
-                    entry.className = 'notebook-entry';
-                    entry.innerHTML = `<span>[Seq-${learnedPatterns.length}] ${last4}</span><span style="color:#38bdf8;">Standard</span>`;
-                    list.appendChild(entry);
-                    list.scrollTop = list.scrollHeight;
-                }
-            }
-        }
-
-        function updateHUD() {
-            const currentSolveSpeed = (1 + (solvesCompleted * 0.25)).toFixed(1);
-
-            document.getElementById('move-count').innerText = totalMoves;
-            document.getElementById('solves-count').innerText = solvesCompleted;
-            document.getElementById('knowledge-count').innerText = Math.floor(brainXP) + " XP";
-            document.getElementById('solver-speed-text').innerText = `${currentSolveSpeed}x`;
-            
-            document.getElementById('energy-val').innerText = Math.round(stamina) + "%";
-            document.getElementById('energy-fill').style.width = stamina + "%";
-            document.getElementById('happy-val').innerText = Math.round(happiness) + "%";
-            document.getElementById('happy-fill').style.width = happiness + "%";
-            
-            const tierPercent = Math.min(100, Math.floor(brainXP % 100));
-            document.getElementById('brain-val').innerText = `${Math.floor(brainXP)} XP`;
-            document.getElementById('brain-fill').style.width = tierPercent + "%";
-        }
-
-        function saveLocalAndCloud() {
-            const stateData = {
-                stamina, happiness, brainXP, totalMoves, solvesCompleted, learnedPatterns
-            };
-            if (window.saveCloudState) window.saveCloudState(stateData);
-        }
-
-        window.loadCloudState = function(data) {
-            if (data.stamina !== undefined) stamina = data.stamina;
-            if (data.happiness !== undefined) happiness = data.happiness;
-            if (data.brainXP !== undefined) brainXP = data.brainXP;
-            if (data.totalMoves !== undefined) totalMoves = data.totalMoves;
-            if (data.solvesCompleted !== undefined) solvesCompleted = data.solvesCompleted;
-            if (data.learnedPatterns) learnedPatterns = data.learnedPatterns;
-            updateHUD();
-        };
-
-        function generateSaveCodeText() {
-            const stateData = {
-                stamina, happiness, brainXP, totalMoves, solvesCompleted, learnedPatterns
-            };
-            const code = btoa(JSON.stringify(stateData));
-            document.getElementById('save-code-input').value = code;
-        }
-
-        function launchSimulation() {
-            const overlay = document.getElementById('startup-overlay');
-            if (overlay) overlay.style.display = 'none';
-            if (!audioCtx && (window.AudioContext || window.webkitAudioContext)) {
-                try {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                } catch(e) {}
-            }
-            showToast("🚀 Continuous Learning Lab Active!");
-        }
-
-        function setCameraPreset(preset) {
-            document.querySelectorAll('.toy-btn').forEach(btn => {
-                if (btn.id && btn.id.startsWith('cam-')) btn.classList.remove('active');
-            });
-            const activeBtn = document.getElementById(`cam-${preset}`);
-            if (activeBtn) activeBtn.classList.add('active');
-
-            let targetPos, targetLookAt;
-            if (preset === 'cube') {
-                targetPos = new THREE.Vector3(0, 1.5, 6.5);
-                targetLookAt = new THREE.Vector3(0, 0.5, 0);
-            } else if (preset === 'table') {
-                targetPos = new THREE.Vector3(0, -0.2, 4.2);
-                targetLookAt = new THREE.Vector3(0, -1.8, 0);
-            } else if (preset === 'toys') {
-                targetPos = new THREE.Vector3(4.5, -0.8, 4);
-                targetLookAt = new THREE.Vector3(3.5, -2.35, 1.8);
-            } else if (preset === 'snack') {
-                targetPos = new THREE.Vector3(-4, -0.8, 4.5);
-                targetLookAt = new THREE.Vector3(-3.5, -2.46, 2.5);
-            }
-
-            if (targetPos && targetLookAt) {
-                camera.position.copy(targetPos);
-                controls.target.copy(targetLookAt);
-                controls.update();
-                playSound('click');
-            }
-        }
-
-        function spinToy() {
-            spinnerSpeed = 0.35;
-            happiness = Math.min(100, happiness + 10);
-            updateHUD();
-            playSound('spin');
-            showToast("🌀 Fidget Spinner Spinning!");
-        }
-
-        function bounceBall() {
-            ballVelY = 0.15;
-            happiness = Math.min(100, happiness + 10);
-            updateHUD();
-            playSound('bounce');
-            showToast("🎾 Bouncing Ball!");
-        }
-
-        function feedPoori() {
-            stamina = Math.min(100, stamina + 40);
-            happiness = Math.min(100, happiness + 20);
-            updateHUD();
-            playSound('spin');
-            showToast("🍲 Jeevan Fly ate Poori & Chaat!");
-        }
-
-        function toggleSpeed() {
-            if (speedMultiplier === 1) speedMultiplier = 2.5;
-            else if (speedMultiplier === 2.5) speedMultiplier = 4;
-            else speedMultiplier = 1;
-            
-            document.getElementById('speed-btn').innerText = `⚡ Boost: ${speedMultiplier}x`;
-            showToast(`⚡ Simulation speed: ${speedMultiplier}x`);
-        }
-
-        function toggleAudio() {
-            audioEnabled = !audioEnabled;
-            document.getElementById('audio-btn').innerText = audioEnabled ? "🔊 Sound: ON" : "🔇 Sound: OFF";
-            showToast(audioEnabled ? "🔊 Sound Enabled" : "🔇 Sound Muted");
-        }
-
-        function openSaveCodeModal() {
-            generateSaveCodeText();
-            document.getElementById('save-code-modal').style.display = 'block';
-        }
-
-        function closeSaveCodeModal() {
-            document.getElementById('save-code-modal').style.display = 'none';
-        }
-
-        function copySaveCodeText() {
-            const input = document.getElementById('save-code-input');
-            input.select();
-            document.execCommand('copy');
-            showToast("📑 Save code copied to clipboard!");
-        }
-
-        function importSaveCodeText() {
-            const code = document.getElementById('save-code-input').value.trim();
-            if (!code) {
-                showToast("⚠️ Please paste a valid save code string!");
-                return;
-            }
-            try {
-                const decoded = JSON.parse(atob(code));
-                if (decoded) {
-                    window.loadCloudState(decoded);
-                    closeSaveCodeModal();
-                    showToast("📥 Knowledge Code Loaded Successfully!");
-                }
-            } catch(e) {
-                showToast("❌ Invalid Save Code string!");
-            }
-        }
-
-        function toggleBrainModal() {
-            const modal = document.getElementById('brain-modal');
-            modal.style.display = (modal.style.display === 'block' || modal.style.display === 'flex') ? 'none' : 'block';
-        }
-
-        let napInterval = null;
-        let napSecondsLeft = 120;
-
-        function enterNapState() {
-            state = 'NAPPING';
-            document.getElementById('nap-overlay').style.display = 'block';
-            document.getElementById('fly-state-text').innerText = "NAPPING";
-            document.getElementById('fly-state-text').style.color = "#a78bfa";
-            napSecondsLeft = 120;
-
-            if (napInterval) clearInterval(napInterval);
-            napInterval = setInterval(() => {
-                napSecondsLeft--;
-                stamina = Math.min(100, stamina + (100 / 120));
-                updateHUD();
-
-                const mins = Math.floor(napSecondsLeft / 60).toString().padStart(2, '0');
-                const secs = (napSecondsLeft % 60).toString().padStart(2, '0');
-                const timerElem = document.getElementById('nap-timer');
-                if (timerElem) timerElem.innerText = `${mins}:${secs}`;
-
-                if (napSecondsLeft <= 0) {
-                    wakeUp();
-                }
-            }, 1000);
-        }
-
-        function wakeUp() {
-            if (napInterval) clearInterval(napInterval);
-            napInterval = null;
-            stamina = 100;
-            state = 'SOLVING';
-            document.getElementById('nap-overlay').style.display = 'none';
-            document.getElementById('fly-state-text').innerText = "EXPLORING";
-            document.getElementById('fly-state-text').style.color = "#34d399";
-            updateHUD();
-            showToast("⚡ Jeevan Fly is awake!");
-        }
-
-        window.launchSimulation = launchSimulation;
-        window.setCameraPreset = setCameraPreset;
-        window.spinToy = spinToy;
-        window.bounceBall = bounceBall;
-        window.feedPoori = feedPoori;
-        window.toggleSpeed = toggleSpeed;
-        window.toggleAudio = toggleAudio;
-        window.openSaveCodeModal = openSaveCodeModal;
-        window.closeSaveCodeModal = closeSaveCodeModal;
-        window.copySaveCodeText = copySaveCodeText;
-        window.importSaveCodeText = importSaveCodeText;
-        window.toggleBrainModal = toggleBrainModal;
-        window.enterNapState = enterNapState;
-        window.wakeUp = wakeUp;
-        window.triggerAutoSolve = triggerAutoSolve;
-        window.scrambleCube = scrambleCube;
-        window.resetBrain = resetBrain;
-
-        let clock = 0;
-        let stepTimer = 0;
-
-        function animate() {
-            requestAnimationFrame(animate);
-            controls.update();
-
-            clock += 0.02;
-
-            // Fast organic wing flutter
-            wingR.rotation.z = Math.sin(clock * 18) * 0.22;
-            wingL.rotation.z = -Math.sin(clock * 18) * 0.22;
-
-            // Smooth free flight lerp towards target position (prevents clipping!)
-            flyGroup.position.lerp(flyTargetPos, 0.08);
-
-            // Subtle organic hover bobbing while in flight
-            flyGroup.position.y += Math.sin(clock * 4) * 0.005;
-            flyGroup.lookAt(bigCubeGroup.position);
-
-            if (spinnerSpeed > 0) {
-                spinnerGroup.rotation.y += spinnerSpeed;
-                spinnerSpeed *= 0.985;
-            }
-
-            if (ballVelY !== 0 || toyBall.position.y > -2.15) {
-                toyBall.position.y += ballVelY;
-                ballVelY -= 0.01;
-                if (toyBall.position.y <= -2.15) {
-                    toyBall.position.y = -2.15;
-                    ballVelY = -ballVelY * 0.65;
-                    if (Math.abs(ballVelY) < 0.02) ballVelY = 0;
-                }
-            }
-
-            // Subtle slow continuous cube rotation for visual depth
-            bigCubeGroup.rotation.y += 0.002;
-
-            const effectiveSpeed = speedMultiplier * (1 + (solvesCompleted * 0.25));
-            stepTimer += 0.016 * effectiveSpeed;
-
-            if (stepTimer >= 1.2) {
-                if (state === 'SOLVING' || state === 'AUTO_SOLVING') triggerLegPushMove();
-                stepTimer = 0;
-            }
-
-            renderer.render(scene, camera);
-        }
-
-        window.onload = function() {
-            animate();
-        };
-
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-    </script>
+      }
+    }
+
+    // Startup Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      loadOfflineState();
+      init3D();
+      
+      // Auto background brain accumulation
+      setInterval(() => {
+        state.brainCapacity = Math.min(100, state.brainCapacity + (0.05 * state.speedMultiplier));
+        saveOfflineState();
+        updateUI();
+      }, 5000);
+    });
+  </script>
 </body>
 </html>
