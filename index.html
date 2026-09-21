@@ -10,11 +10,9 @@
     
     #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
     
-    /* Responsive Overlay UI */
     .hud-layer { position: absolute; z-index: 10; pointer-events: none; width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; }
     .interactive { pointer-events: auto; }
 
-    /* Top Navigation Bar */
     .top-bar { display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; }
     .title-card { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); padding: 8px 14px; border-radius: 12px; }
     .title-card h1 { font-size: 16px; font-weight: 700; color: #38bdf8; display: flex; align-items: center; gap: 6px; }
@@ -25,19 +23,16 @@
     .stat-badge .label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 600; }
     .stat-badge .val { font-size: 14px; font-weight: 700; color: #f1f5f9; }
 
-    /* Controls Panel */
     .action-bar { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; max-width: 100%; }
     .btn { background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); color: #f8fafc; padding: 8px 12px; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; transition: all 0.2s; }
     .btn:hover { background: rgba(51, 65, 85, 1); border-color: #38bdf8; }
     .btn-primary { background: #0284c7; border-color: #38bdf8; }
     .btn-primary:hover { background: #0369a1; }
     
-    /* Notebook / Log Bar */
     .notebook-card { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 10px; width: 100%; max-width: 380px; max-height: 140px; overflow-y: auto; font-family: monospace; font-size: 11px; }
     .notebook-card h3 { font-family: sans-serif; font-size: 12px; color: #38bdf8; margin-bottom: 6px; display: flex; justify-content: space-between; }
     .move-tag { display: inline-block; background: #1e293b; padding: 2px 5px; border-radius: 4px; margin: 2px; border: 1px solid #334155; color: #f1f5f9; }
 
-    /* Modals */
     .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); backdrop-filter: blur(8px); z-index: 100; display: flex; align-items: center; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
     .modal-overlay.active { opacity: 1; pointer-events: auto; }
     .modal-card { background: #1e293b; border: 1px solid rgba(255,255,255,0.15); border-radius: 16px; width: 100%; max-width: 440px; padding: 20px; color: #f8fafc; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
@@ -45,7 +40,6 @@
     .modal-card p { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 16px; }
     .modal-card textarea { width: 100%; height: 80px; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #f8fafc; padding: 8px; font-family: monospace; font-size: 11px; resize: none; margin-bottom: 12px; }
 
-    /* Mobile adjustments */
     @media (max-width: 600px) {
       .hud-layer { padding: 8px; }
       .title-card h1 { font-size: 14px; }
@@ -60,17 +54,16 @@
   <div id="canvas-container"></div>
 
   <div class="hud-layer">
-    <!-- Top HUD -->
     <div class="top-bar">
       <div class="title-card interactive">
-        <h1>🪰 Jeevan Fly Solver <span style="font-size: 10px; background: #0284c7; padding: 2px 6px; border-radius: 10px; color: white;">Offline v2.0</span></h1>
-        <p>Continuous Neural WCA 3D Sanctuary</p>
+        <h1>🪰 Jeevan Fly Solver <span style="font-size: 10px; background: #0284c7; padding: 2px 6px; border-radius: 10px; color: white;">3D Room v2.5</span></h1>
+        <p>Sanctuary & WCA Rubik's Solver</p>
       </div>
 
       <div class="stats-group interactive">
         <div class="stat-badge">
           <div class="label">Brain Cap</div>
-          <div class="val" id="brain-cap-val">12%</div>
+          <div class="val" id="brain-cap-val">12.5%</div>
         </div>
         <div class="stat-badge">
           <div class="label">Solves</div>
@@ -83,10 +76,9 @@
       </div>
     </div>
 
-    <!-- Bottom HUD -->
     <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-start;">
       <div class="notebook-card interactive">
-        <h3><span>🧠 Neural WCA Notebook</span> <span id="wca-status" style="color:#94a3b8; font-weight:normal;">Exploring...</span></h3>
+        <h3><span>🧠 Neural WCA Log</span> <span id="wca-status" style="color:#94a3b8; font-weight:normal;">Exploring...</span></h3>
         <div id="wca-log-container">
           <span class="move-tag">Ready</span>
         </div>
@@ -94,7 +86,8 @@
 
       <div class="action-bar interactive">
         <button class="btn btn-primary" onclick="triggerScramble()">🎲 Scramble</button>
-        <button class="btn" onclick="toggleSpeed()">⚡ Speed</button>
+        <button class="btn" onclick="executeRandomTurn()">⚡ Turn Layer</button>
+        <button class="btn" onclick="spinToy()">🌀 Spin Toy</button>
         <button class="btn" onclick="feedFly()">🍲 Feed Poori</button>
         <button class="btn" onclick="openSaveModal()">💾 Save/Load</button>
         <button class="btn" onclick="resetBrain()" style="color: #f87171;">🧠 Reset</button>
@@ -102,11 +95,10 @@
     </div>
   </div>
 
-  <!-- Save/Load Modal -->
   <div class="modal-overlay" id="save-modal">
     <div class="modal-card">
       <h2>💾 Offline Save Code Manager</h2>
-      <p>Copy your offline progress code string below or paste a saved code to restore Jeevan Fly's brain capacity and learned moves on any offline device!</p>
+      <p>Copy your offline progress code string below or paste a saved code to restore Jeevan Fly's brain capacity and learned moves!</p>
       <textarea id="save-code-box" readonly></textarea>
       <div style="display: flex; gap: 8px; justify-content: flex-end;">
         <button class="btn" onclick="closeSaveModal()">Close</button>
@@ -116,24 +108,20 @@
     </div>
   </div>
 
-  <!-- Three.js Libraries (Loaded locally or fallbacks) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
   <script>
-    // Global State Container (Stored in LocalStorage for shared offline persistence)
-    const GLOBAL_STORAGE_KEY = 'jeevan_fly_solver_offline_data';
+    const GLOBAL_STORAGE_KEY = 'jeevan_fly_solver_room_data';
     
     let state = {
       brainCapacity: 12.5,
       solvesCount: 0,
       speedMultiplier: 1.0,
       learnedMoves: ['U', "R'", 'F', 'D'],
-      stamina: 100,
       lastTimestamp: Date.now()
     };
 
-    // Load Offline Data
     function loadOfflineState() {
       try {
         const data = localStorage.getItem(GLOBAL_STORAGE_KEY);
@@ -141,7 +129,7 @@
           state = Object.assign(state, JSON.parse(data));
           updateUI();
         }
-      } catch(e) { console.warn('LocalStorage unavailable'); }
+      } catch(e) {}
     }
 
     function saveOfflineState() {
@@ -151,10 +139,21 @@
       } catch(e) {}
     }
 
-    // Three.js Scene Setup
     let scene, camera, renderer, controls;
-    let flyMesh, cubeGroup;
-    let movesList = ['U', "U'", 'D', "D'", 'R', "R'", 'L', "L'", 'F', "F'", 'B', "B'"];
+    let flyMesh, cubies = [], spinnerGroup;
+    let isRotating = false;
+
+    // Standard WCA Colors: Right=Red, Left=Orange, Top=White, Bottom=Yellow, Front=Green, Back=Blue
+    const WCA_COLORS = {
+      R: 0xb91c1c, // Red
+      L: 0xc2410c, // Orange
+      U: 0xf8fafc, // White
+      D: 0xfacc15, // Yellow
+      F: 0x15803d, // Green
+      B: 0x1d4ed8  // Blue
+    };
+
+    const WCA_MOVES = ['U', "U'", 'D', "D'", 'R', "R'", 'L', "L'", 'F', "F'", 'B', "B'"];
 
     function init3D() {
       const container = document.getElementById('canvas-container');
@@ -173,7 +172,6 @@
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
 
-      // Lights
       const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
       scene.add(ambientLight);
 
@@ -181,60 +179,110 @@
       dirLight.position.set(5, 10, 7);
       scene.add(dirLight);
 
-      // Create Sanctuary Room
-      createRoom();
-
-      // Create Rubik's Cube
-      createCube();
-
-      // Create Drosophila Fly Model
+      createSanctuaryRoom();
+      createRubiksCube();
+      createFidgetSpinner();
       createFly();
 
-      // Window resize
       window.addEventListener('resize', onWindowResize);
-
-      // Start loop
       animate();
     }
 
-    function createRoom() {
-      // Room floor
+    function createSanctuaryRoom() {
+      // Room Floor
       const floorGeo = new THREE.PlaneGeometry(12, 12);
       const floorMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.8 });
       const floor = new THREE.Mesh(floorGeo, floorMat);
       floor.rotation.x = -Math.PI / 2;
       floor.position.y = -1.5;
       scene.add(floor);
+
+      // Back Wall
+      const wallGeo = new THREE.PlaneGeometry(12, 8);
+      const wallMat = new THREE.MeshStandardMaterial({ color: 0x0f172a, roughness: 0.9 });
+      const backWall = new THREE.Mesh(wallGeo, wallMat);
+      backWall.position.set(0, 2.5, -6);
+      scene.add(backWall);
+
+      // Food Dish (Poori Chaat Station)
+      const dishGeo = new THREE.CylinderGeometry(0.6, 0.5, 0.1, 16);
+      const dishMat = new THREE.MeshStandardMaterial({ color: 0x94a3b8 });
+      const dish = new THREE.Mesh(dishGeo, dishMat);
+      dish.position.set(-2.5, -1.45, -1);
+      scene.add(dish);
+
+      // Poori Samosa meshes
+      const pooriGeo = new THREE.SphereGeometry(0.2, 8, 8);
+      pooriGeo.scale(1, 0.3, 1);
+      const pooriMat = new THREE.MeshStandardMaterial({ color: 0xd97706 });
+      const poori = new THREE.Mesh(pooriGeo, pooriMat);
+      poori.position.set(-2.5, -1.35, -1);
+      scene.add(poori);
+
+      // Leaf Bed
+      const leafGeo = new THREE.SphereGeometry(0.8, 8, 8);
+      leafGeo.scale(1, 0.1, 1.5);
+      const leafMat = new THREE.MeshStandardMaterial({ color: 0x16a34a, roughness: 0.6 });
+      const leafBed = new THREE.Mesh(leafGeo, leafMat);
+      leafBed.position.set(2.5, -1.45, -1.5);
+      scene.add(leafBed);
     }
 
-    function createCube() {
-      cubeGroup = new THREE.Group();
-      const colors = [0xb91c1c, 0x15803d, 0x1d4ed8, 0xc2410c, 0xfacc15, 0xf8fafc];
-      
+    function createRubiksCube() {
+      cubies = [];
+      const size = 0.58;
+      const gap = 0.6;
+
       for (let x = -1; x <= 1; x++) {
         for (let y = -1; y <= 1; y++) {
           for (let z = -1; z <= 1; z++) {
-            const geo = new THREE.BoxGeometry(0.58, 0.58, 0.58);
-            const mats = colors.map(c => new THREE.MeshStandardMaterial({ color: c, roughness: 0.3 }));
-            const cubie = new THREE.Mesh(geo, mats);
-            cubie.position.set(x * 0.6, y * 0.6, z * 0.6);
-            cubeGroup.add(cubie);
+            const materials = [
+              new THREE.MeshStandardMaterial({ color: x === 1 ? WCA_COLORS.R : 0x111827 }),
+              new THREE.MeshStandardMaterial({ color: x === -1 ? WCA_COLORS.L : 0x111827 }),
+              new THREE.MeshStandardMaterial({ color: y === 1 ? WCA_COLORS.U : 0x111827 }),
+              new THREE.MeshStandardMaterial({ color: y === -1 ? WCA_COLORS.D : 0x111827 }),
+              new THREE.MeshStandardMaterial({ color: z === 1 ? WCA_COLORS.F : 0x111827 }),
+              new THREE.MeshStandardMaterial({ color: z === -1 ? WCA_COLORS.B : 0x111827 })
+            ];
+
+            const geo = new THREE.BoxGeometry(size, size, size);
+            const cubie = new THREE.Mesh(geo, materials);
+            cubie.position.set(x * gap, y * gap, z * gap);
+            scene.add(cubie);
+            cubies.push(cubie);
           }
         }
       }
-      scene.add(cubeGroup);
+    }
+
+    function createFidgetSpinner() {
+      spinnerGroup = new THREE.Group();
+      const centerGeo = new THREE.CylinderGeometry(0.2, 0.2, 0.08, 16);
+      const centerMat = new THREE.MeshStandardMaterial({ color: 0xec4899, metalness: 0.5 });
+      const center = new THREE.Mesh(centerGeo, centerMat);
+      spinnerGroup.add(center);
+
+      for (let i = 0; i < 3; i++) {
+        const angle = (i * Math.PI * 2) / 3;
+        const bladeGeo = new THREE.CylinderGeometry(0.15, 0.15, 0.06, 12);
+        const bladeMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8 });
+        const blade = new THREE.Mesh(bladeGeo, bladeMat);
+        blade.position.set(Math.cos(angle) * 0.45, 0, Math.sin(angle) * 0.45);
+        spinnerGroup.add(blade);
+      }
+
+      spinnerGroup.position.set(0, -1.45, 2);
+      scene.add(spinnerGroup);
     }
 
     function createFly() {
       flyMesh = new THREE.Group();
       
-      // Body
       const bodyGeo = new THREE.SphereGeometry(0.12, 8, 8);
       const bodyMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.5 });
       const body = new THREE.Mesh(bodyGeo, bodyMat);
       flyMesh.add(body);
 
-      // Wings
       const wingGeo = new THREE.PlaneGeometry(0.15, 0.25);
       const wingMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.6, side: THREE.DoubleSide });
       
@@ -248,21 +296,76 @@
       wingR.rotation.z = -Math.PI / 4;
       flyMesh.add(wingR);
 
-      flyMesh.position.set(1.5, 0.5, 1.5);
+      flyMesh.position.set(1.8, 0.5, 1.8);
       scene.add(flyMesh);
     }
 
-    // Simulation Loop
+    function rotateFace(faceNotation) {
+      if (isRotating) return;
+      isRotating = true;
+
+      const pivot = new THREE.Group();
+      scene.add(pivot);
+
+      let axis = 'y';
+      let limit = 0.3;
+      let angle = -Math.PI / 2;
+
+      const baseMove = faceNotation[0];
+      const isPrime = faceNotation.includes("'");
+      if (isPrime) angle = Math.PI / 2;
+
+      switch (baseMove) {
+        case 'U': axis = 'y'; limit = 0.3; angle = isPrime ? Math.PI / 2 : -Math.PI / 2; break;
+        case 'D': axis = 'y'; limit = -0.3; angle = isPrime ? -Math.PI / 2 : Math.PI / 2; break;
+        case 'R': axis = 'x'; limit = 0.3; angle = isPrime ? Math.PI / 2 : -Math.PI / 2; break;
+        case 'L': axis = 'x'; limit = -0.3; angle = isPrime ? -Math.PI / 2 : Math.PI / 2; break;
+        case 'F': axis = 'z'; limit = 0.3; angle = isPrime ? Math.PI / 2 : -Math.PI / 2; break;
+        case 'B': axis = 'z'; limit = -0.3; angle = isPrime ? -Math.PI / 2 : Math.PI / 2; break;
+      }
+
+      const targetCubies = cubies.filter(c => {
+        if (limit > 0) return c.position[axis] > limit;
+        return c.position[axis] < limit;
+      });
+
+      targetCubies.forEach(c => pivot.attach(c));
+
+      let currentAngle = 0;
+      const step = (angle / 15) * state.speedMultiplier;
+
+      function animateTurn() {
+        if (Math.abs(currentAngle) < Math.abs(angle)) {
+          pivot.rotation[axis] += step;
+          currentAngle += step;
+          requestAnimationFrame(animateTurn);
+        } else {
+          pivot.rotation[axis] = angle;
+          pivot.updateMatrixWorld();
+          
+          targetCubies.forEach(c => {
+            scene.attach(c);
+            c.position.x = Math.round(c.position.x / 0.6) * 0.6;
+            c.position.y = Math.round(c.position.y / 0.6) * 0.6;
+            c.position.z = Math.round(c.position.z / 0.6) * 0.6;
+          });
+          scene.remove(pivot);
+          isRotating = false;
+        }
+      }
+
+      animateTurn();
+    }
+
     let angle = 0;
     function animate() {
       requestAnimationFrame(animate);
 
-      // Smooth orbit flying animation around cube
       angle += 0.02 * state.speedMultiplier;
-      flyMesh.position.x = Math.cos(angle) * 1.8;
-      flyMesh.position.z = Math.sin(angle) * 1.8;
-      flyMesh.position.y = Math.sin(angle * 2) * 0.4 + 0.2;
-      flyMesh.lookAt(cubeGroup.position);
+      flyMesh.position.x = Math.cos(angle) * 2.2;
+      flyMesh.position.z = Math.sin(angle) * 2.2;
+      flyMesh.position.y = Math.sin(angle * 2) * 0.4 + 0.3;
+      flyMesh.lookAt(0, 0, 0);
 
       controls.update();
       renderer.render(scene, camera);
@@ -274,7 +377,6 @@
       renderer.setSize(window.innerWidth, window.innerHeight);
     }
 
-    // UI Updates & Mechanics
     function updateUI() {
       document.getElementById('brain-cap-val').innerText = state.brainCapacity.toFixed(1) + '%';
       document.getElementById('solves-val').innerText = state.solvesCount;
@@ -284,35 +386,43 @@
       logContainer.innerHTML = state.learnedMoves.map(m => `<span class="move-tag">${m}</span>`).join('');
     }
 
-    function triggerScramble() {
-      const randomMove = movesList[Math.floor(Math.random() * movesList.length)];
-      state.learnedMoves.push(randomMove);
-      if (state.learnedMoves.length > 12) state.learnedMoves.shift();
-      
-      state.brainCapacity = Math.min(100, state.brainCapacity + 0.5);
+    function executeRandomTurn() {
+      const move = WCA_MOVES[Math.floor(Math.random() * WCA_MOVES.length)];
+      rotateFace(move);
+      state.learnedMoves.push(move);
+      if (state.learnedMoves.length > 10) state.learnedMoves.shift();
+      state.brainCapacity = Math.min(100, state.brainCapacity + 0.2);
       saveOfflineState();
       updateUI();
-
-      // Visual spin effect on cube
-      cubeGroup.rotation.y += Math.PI / 2;
     }
 
-    function toggleSpeed() {
-      state.speedMultiplier = state.speedMultiplier >= 4.0 ? 1.0 : state.speedMultiplier + 0.5;
-      saveOfflineState();
-      updateUI();
+    function triggerScramble() {
+      let count = 0;
+      const interval = setInterval(() => {
+        executeRandomTurn();
+        count++;
+        if (count >= 6) clearInterval(interval);
+      }, 300);
+    }
+
+    function spinToy() {
+      let turns = 0;
+      const spinInterval = setInterval(() => {
+        spinnerGroup.rotation.y += 0.5;
+        turns++;
+        if (turns >= 20) clearInterval(spinInterval);
+      }, 30);
     }
 
     function feedFly() {
-      state.stamina = 100;
       state.brainCapacity = Math.min(100, state.brainCapacity + 1.2);
       saveOfflineState();
       updateUI();
-      alert('🍲 Jeevan Fly enjoyed fresh Poori Masala! Brain capacity increased.');
+      alert('🍲 Jeevan Fly visited its food dish and enjoyed fresh Poori Masala!');
     }
 
     function resetBrain() {
-      if (confirm('Are you sure you want to reset Jeevan Fly\'s neural capacity back to baseline?')) {
+      if (confirm('Reset Jeevan Fly\'s brain capacity back to baseline?')) {
         state.brainCapacity = 12.5;
         state.solvesCount = 0;
         state.learnedMoves = ['U', "R'", 'F'];
@@ -321,7 +431,6 @@
       }
     }
 
-    // Save/Load Modal Handlers
     function openSaveModal() {
       document.getElementById('save-code-box').value = btoa(JSON.stringify(state));
       document.getElementById('save-modal').classList.add('active');
@@ -354,17 +463,13 @@
       }
     }
 
-    // Startup Initialization
     window.addEventListener('DOMContentLoaded', () => {
       loadOfflineState();
       init3D();
       
-      // Auto background brain accumulation
       setInterval(() => {
-        state.brainCapacity = Math.min(100, state.brainCapacity + (0.05 * state.speedMultiplier));
-        saveOfflineState();
-        updateUI();
-      }, 5000);
+        executeRandomTurn();
+      }, 4000);
     });
   </script>
 </body>
